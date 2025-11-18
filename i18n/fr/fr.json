@@ -1,0 +1,35 @@
+{
+    "auth":{
+    "User registered successfully.": "Utilisateur enregistré avec succès.",
+    "User logged in successfully.": "Utilisateur connecté avec succès.",
+    "User profile retrieved successfully.": "Profil utilisateur récupéré avec succès.",
+    "Tokens refreshed successfully.": "Jetons actualisés avec succès.",
+    "User logged out successfully.": "Utilisateur déconnecté avec succès."
+    },
+    "sharedlink": {
+    "sharedlink types retrieved successfully.": "Types de liens partagés récupérés avec succès.",
+    "sharedlink added successfully.": "Lien partagé ajouté avec succès.",
+    "sharedlink IDs retrieved successfully.": "Identifiants de liens partagés récupérés avec succès.",
+    "sharedlinks retrieved successfully.": "Liens partagés récupérés avec succès.",
+    "sharedlink updated successfully.": "Lien partagé mis à jour avec succès.",
+    "sharedlink deleted successfully.": "Lien partagé supprimé avec succès.",
+    "sharedlinks order updated successfully.": "Ordre des liens partagés mis à jour avec succès.",
+    "sharedlink retrieved successfully.": "Lien partagé récupéré avec succès."
+    },
+    "event":{
+    "events IDs retrieved successfully.": "Identifiants des événements récupérés avec succès.",
+    "events retrieved successfully.": "Événements récupérés avec succès.",
+    "event image added successfully.": "Image de l’événement ajoutée avec succès.",
+    "event added successfully.": "Événement ajouté avec succès.",
+    "event updated successfully.": "Événement mis à jour avec succès."
+    },
+    "centerpolls":{
+        "Successfully retrieved center polls.": "Sondages du centre récupérés avec succès.",
+        "Successfully retrieved poll statistics.": "Statistiques du sondage récupérées avec succès.",
+        "Successfully retrieved poll details by id.": "Détails du sondage récupérés avec succès par identifiant.",
+        "Poll created successfully.": "Sondage créé avec succès.",
+        "Poll updated successfully.": "Sondage mis à jour avec succès.",
+        "Poll deleted successfully.": "Sondage supprimé avec succès."
+    }
+}
+

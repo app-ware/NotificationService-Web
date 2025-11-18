@@ -1,0 +1,34 @@
+{
+    "auth": {
+    "User registered successfully.": "User registered successfully.",
+    "User logged in successfully.": "User logged in successfully.",
+    "User profile retrieved successfully.": "User profile retrieved successfully.",
+    "Tokens refreshed successfully.": "Tokens refreshed successfully.",
+    "User logged out successfully.": "User logged out successfully."
+    },  
+    "sharedlink": {
+    "sharedlink types retrieved successfully.": "Shared link types retrieved successfully.",
+    "sharedlink added successfully.": "Shared link added successfully.",
+    "sharedlink IDs retrieved successfully.": "Shared link IDs retrieved successfully.",
+    "sharedlinks retrieved successfully.": "Shared links retrieved successfully.",
+    "sharedlink updated successfully.": "Shared link updated successfully.",
+    "sharedlink deleted successfully.": "Shared link deleted successfully.",
+    "sharedlinks order updated successfully.": "Shared links order updated successfully.",
+    "sharedlink retrieved successfully.": "Shared link retrieved successfully."
+    },
+    "event":{
+      "events IDs retrieved successfully.": "events IDs retrieved successfully.",
+      "events retrieved successfully.": "events retrieved successfully.",
+      "event image added successfully.": "event image added successfully.",
+      "event added successfully.": "event added successfully.",
+      "event updated successfully.": "event updated successfully."
+    },
+    "centerpolls":{
+        "Successfully retrieved center polls.": "Successfully retrieved center polls.",
+        "Successfully retrieved poll statistics.": "Successfully retrieved poll statistics.",
+        "Successfully retrieved poll details by id.": "Successfully retrieved poll details by id.",
+        "Poll created successfully.": "Poll created successfully.",
+        "Poll updated successfully.": "Poll updated successfully.",
+        "Poll deleted successfully.": "Poll deleted successfully."
+    }
+}

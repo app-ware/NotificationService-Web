@@ -1,0 +1,34 @@
+{
+    "auth":{
+    "User registered successfully.": "تم تسجيل المستخدم بنجاح",
+    "User logged in successfully.": "تم تسجيل دخول المستخدم بنجاح",
+    "User profile retrieved successfully.": "تم استرجاع ملف المستخدم الشخصي بنجاح",
+    "Tokens refreshed successfully.": "تم تحديث الرموز بنجاح",
+    "User logged out successfully.": "تم تسجيل خروج المستخدم بنجاح"
+    },  
+    "sharedlink": {
+    "sharedlink types retrieved successfully.": "تم استرجاع انواع الروابط بنجاح",
+    "sharedlink added successfully.": "تمت إضافة الرابط بنجاح",
+    "sharedlink IDs retrieved successfully.": "تم استرجاع معرفات الروابط بنجاح",
+    "sharedlinks retrieved successfully.": "تم استرجاع الروابط بنجاح",
+    "sharedlink updated successfully.": "تم تحديث الرابط بنجاح",
+    "sharedlink deleted successfully.": "تم حذف الرابط بنجاح",
+    "sharedlinks order updated successfully.": "تم تحديث ترتيب الروابط بنجاح",
+    "sharedlink retrieved successfully.": "تم استرجاع الرابط بنجاح"
+    },
+    "event":{
+      "events IDs retrieved successfully.": "تم استرجاع معرفات الفعاليات بنجاح",
+      "events retrieved successfully.": "تم استرجاع الفعاليات بنجاح",
+      "event image added successfully.": "تمت إضافة صورة الفعالية بنجاح",
+      "event added successfully.": "تمت إضافة الفعالية بنجاح",
+      "event updated successfully.": "تم تحديث الفعالية بنجاح"
+    },
+    "centerpolls":{
+        "Successfully retrieved center polls.": "تم استرجاع استطلاعات المركز بنجاح",
+        "Successfully retrieved poll statistics.": "تم استرجاع إحصائيات الاستطلاع بنجاح",
+        "Successfully retrieved poll details by id.": "تم استرجاع تفاصيل الاستطلاع بنجاح",
+        "Poll created successfully.": "تم إنشاء الاستطلاع بنجاح",
+        "Poll updated successfully.": "تم تحديث الاستطلاع بنجاح",
+        "Poll deleted successfully.": "تم حذف الاستطلاع بنجاح"
+    }
+}

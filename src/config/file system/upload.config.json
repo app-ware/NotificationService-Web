@@ -1,0 +1,25 @@
+{
+  "servers":{
+    "serverIP":"//localhost",
+    "PhotoServer":"//localhost/icarephotos"
+  },
+  "folders": {
+    "BasePartation":"D",
+    "SharedFolder": "iCare",
+    "PhotoFolder": "icarephotos",
+    "SharedLinksFolder": "shared_links",
+    "WaterMarkFolder": "watermark",
+    "imagesVidrtualdirectory": "icarephotos",
+    "events":"events",
+    "NotificationImages":"NotificationImages",
+    "emoticons":"notification"
+  },
+  "limits": {
+    "fileSize": 5242880,
+    "fileTypes": {
+      "images": ["image/jpeg", "image/png", "image/webp"],
+      "documents": ["application/pdf"]
+    }
+  },
+  "publicUrlPrefix": "/uploads"
+}
