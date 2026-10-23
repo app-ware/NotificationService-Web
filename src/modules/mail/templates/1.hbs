@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{centerName}}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f2f4f7;">
+  <!--
+    Layout 1 - default. Table-based with inline styles on purpose: Gmail and Outlook drop
+    <style> blocks and ignore flexbox, so anything else breaks the header alignment.
+    Variables: centerName, centerAddress, centerLandLine, logoUrl, bodyHtml (unescaped),
+    and the optional credentials block: parentName, username, pin.
+  -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f4f7;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px; background-color:#ffffff; border-radius:12px; overflow:hidden; font-family:Arial, Helvetica, sans-serif; color:#1f2937;">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:28px 32px 20px 32px; border-bottom:1px solid #eef0f3;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  {{#if logoUrl}}
+                  <td valign="middle" style="padding-right:16px;">
+                    <img src="{{logoUrl}}" alt="{{centerName}}" width="56" height="56" style="display:block; width:56px; height:56px; border-radius:50%; object-fit:cover; border:1px solid #eef0f3;">
+                  </td>
+                  {{/if}}
+                  <td valign="middle">
+                    <div style="font-size:18px; font-weight:bold; line-height:24px; color:#111827;">{{centerName}}</div>
+                    {{#if centerAddress}}
+                    <div style="font-size:13px; line-height:18px; color:#6b7280; padding-top:2px;">{{centerAddress}}</div>
+                    {{/if}}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px 32px; font-size:15px; line-height:23px; color:#374151;">
+              {{{bodyHtml}}}
+            </td>
+          </tr>
+
+          {{#if username}}
+          <!-- Credentials -->
+          <tr>
+            <td style="padding:0 32px 28px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8fafc; border:1px solid #e5e7eb; border-radius:8px;">
+                {{#if parentName}}
+                <tr>
+                  <td style="padding:14px 20px 6px 20px; font-size:13px; color:#6b7280; width:110px;">Parent</td>
+                  <td style="padding:14px 20px 6px 0; font-size:15px; font-weight:bold; color:#111827;">{{parentName}}</td>
+                </tr>
+                {{/if}}
+                <tr>
+                  <td style="padding:6px 20px; font-size:13px; color:#6b7280; width:110px;">Username</td>
+                  <td style="padding:6px 20px 6px 0; font-size:15px; font-weight:bold; color:#111827; font-family:Consolas, Menlo, monospace;">{{username}}</td>
+                </tr>
+                {{#if pin}}
+                <tr>
+                  <td style="padding:6px 20px 14px 20px; font-size:13px; color:#6b7280; width:110px;">PIN</td>
+                  <td style="padding:6px 20px 14px 0; font-size:15px; font-weight:bold; color:#111827; font-family:Consolas, Menlo, monospace;">{{pin}}</td>
+                </tr>
+                {{/if}}
+              </table>
+            </td>
+          </tr>
+          {{/if}}
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:16px 32px; background-color:#f8fafc; border-top:1px solid #eef0f3; font-size:12px; line-height:18px; color:#9ca3af;">
+              {{centerName}}{{#if centerLandLine}} &middot; {{centerLandLine}}{{/if}}
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

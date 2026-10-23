@@ -1,0 +1,194 @@
+name: CI/CD Pipeline - Notification Service (NotificationService-Web)
+
+# Mirrors NurseryServices-Web's pipeline (build → GHCR → per-environment deploy). The service is
+# declared in NurseryServices-Web's docker-compose.prod.yml - the compose file the servers run
+# from /opt/icare/backend, shipped by the Nursery workflow - so that has to be deployed first, or
+# `docker compose pull notification-service` finds no such service.
+#
+# Production deploy is manual-only for now (workflow_dispatch → production): production push stays
+# on the legacy pm2 server (Nursery PUSH_TRANSPORT=legacy-http) until the queue path is proven on
+# staging. Turn on the main/tag triggers in deploy-production's `if` when that changes.
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Target Environment to deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/notificationservice
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ==============================================================================
+  # 1. BUILD & PUSH: Build Docker image and push to GitHub Container Registry (GHCR)
+  # ==============================================================================
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,prefix=
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==============================================================================
+  # 2. STAGING DEPLOYMENT: https://appwarestg.com
+  # ==============================================================================
+  deploy-staging:
+    name: Deploy to Staging (appwarestg.com)
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://appwarestg.com
+    if: >-
+      github.ref == 'refs/heads/develop' ||
+      (github.event_name == 'workflow_dispatch' && inputs.target_env == 'staging')
+
+    steps:
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_PORT || 22 }}
+          script: |
+            cd /opt/icare/backend
+
+            # Ensure env files exist to prevent compose stat errors
+            touch .env.reporting .env.audit .env.notification
+
+            # Login to GitHub Container Registry
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            export NOTIFICATION_IMAGE_TAG="develop"
+
+            # Pull while the old container keeps consuming
+            docker compose pull notification-service
+
+            # Broker must be up (idempotent); queued jobs wait in it during the recreate
+            docker compose up -d rabbitmq
+            docker compose up -d --no-deps --force-recreate notification-service
+
+            sleep 5
+            status=$(docker inspect --format='{{.State.Status}}' notification_service_container 2>/dev/null || echo "unknown")
+            if [ "$status" = "running" ]; then
+              echo "✓ notification_service_container deployed and running successfully on Staging."
+            else
+              echo "✗ Error: notification_service_container failed to start on Staging! Current status: $status"
+              docker logs --tail 50 notification_service_container
+              exit 1
+            fi
+
+            docker image prune -f
+            docker compose ps notification-service
+
+  # ==============================================================================
+  # 3. PRODUCTION DEPLOYMENT: https://icare-portal.com - MANUAL ONLY for now
+  # ==============================================================================
+  deploy-production:
+    name: Deploy to Production (icare-portal.com)
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://icare-portal.com
+    # Later: add `github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') ||`
+    if: github.event_name == 'workflow_dispatch' && inputs.target_env == 'production'
+
+    steps:
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_PORT || 22 }}
+          script: |
+            cd /opt/icare/backend
+
+            # Ensure env files exist to prevent compose stat errors
+            touch .env.reporting .env.audit .env.notification
+
+            # Login to GitHub Container Registry
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            if [ "${{ github.ref_type }}" = "tag" ]; then
+              export NOTIFICATION_IMAGE_TAG="${{ github.ref_name }}"
+            else
+              export NOTIFICATION_IMAGE_TAG="latest"
+            fi
+            echo "Deploying to Production with NOTIFICATION_IMAGE_TAG=$NOTIFICATION_IMAGE_TAG"
+
+            docker compose pull notification-service
+            docker compose up -d rabbitmq
+            docker compose up -d --no-deps --force-recreate notification-service
+
+            sleep 5
+            status=$(docker inspect --format='{{.State.Status}}' notification_service_container 2>/dev/null || echo "unknown")
+            if [ "$status" = "running" ]; then
+              echo "✓ notification_service_container deployed and running successfully on Production."
+            else
+              echo "✗ Error: notification_service_container failed to start on Production! Current status: $status"
+              docker logs --tail 50 notification_service_container
+              exit 1
+            fi
+
+            docker image prune -f
+            docker compose ps notification-service
