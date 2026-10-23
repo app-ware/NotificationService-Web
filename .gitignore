@@ -42,6 +42,11 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# push credentials (Firebase service account, APN .p8 keys, apn.json) - only the docs/example are tracked
+/keys/*
+!/keys/README.md
+!/keys/apn.example.json
+
 # temp directory
 .temp
 .tmp

@@ -22,7 +22,8 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /usr/src/app/dist ./dist
 
-COPY --from=builder /usr/src/app/i18n ./i18n
+# Firebase service account, APN .p8 keys and apn.json are NOT baked into the image -
+# mount them read-only at /usr/src/app/keys (see keys/README.md).
 EXPOSE 4448
 
 CMD ["node", "dist/main.js"]

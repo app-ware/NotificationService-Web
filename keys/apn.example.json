@@ -1,0 +1,11 @@
+{
+  "production": true,
+  "default": { "keyFile": "AuthKey_XXXXXXXXXX.p8", "keyId": "XXXXXXXXXX", "teamId": "XXXXXXXXXX" },
+  "bundles": {
+    "com.appware.azmschool": { "keyFile": "AuthKey_XXXXXXXXXX.p8", "keyId": "XXXXXXXXXX", "teamId": "XXXXXXXXXX" },
+    "com.appware.under5": { "keyFile": "AuthKey_XXXXXXXXXX.p8", "keyId": "XXXXXXXXXX", "teamId": "XXXXXXXXXX" },
+    "com.appware.learnandplay": { "keyFile": "AuthKey_XXXXXXXXXX.p8", "keyId": "XXXXXXXXXX", "teamId": "XXXXXXXXXX" },
+    "com.appware.myminicamp": { "keyFile": "AuthKey_XXXXXXXXXX.p8", "keyId": "XXXXXXXXXX", "teamId": "XXXXXXXXXX" },
+    "com.appware.kinkidsnursery": { "keyFile": "AuthKey_XXXXXXXXXX.p8", "keyId": "XXXXXXXXXX", "teamId": "XXXXXXXXXX" }
+  }
+}
