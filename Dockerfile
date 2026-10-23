@@ -22,7 +22,8 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /usr/src/app/dist ./dist
 
-COPY --from=builder /usr/src/app/i18n ./i18n
+# Credentials are NOT baked into the image - they arrive as env values
+# (FIREBASE_SERVICE_ACCOUNT_B64, APN_CONFIG_B64, RESEND_API_KEY; see README "Deploy").
 EXPOSE 4448
 
 CMD ["node", "dist/main.js"]
