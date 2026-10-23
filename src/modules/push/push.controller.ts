@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { PinoLogger } from 'nestjs-pino';
 import { PATTERNS } from '../../config/rabbitmq/rabbitmq.constants';
-import type { PushJob } from '../../contracts/push-job';
+import type { PushJob } from '../../config/rabbitmq/contracts/push-job';
 import { runRmqJob } from '../../common/rmq-job.util';
 import { PushService } from './push.service';
 

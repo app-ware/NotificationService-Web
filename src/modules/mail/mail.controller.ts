@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { PinoLogger } from 'nestjs-pino';
 import { PATTERNS } from '../../config/rabbitmq/rabbitmq.constants';
-import type { EmailJob } from '../../contracts/email-job';
+import type { EmailJob } from '../../config/rabbitmq/contracts/email-job';
 import { runRmqJob } from '../../common/rmq-job.util';
 import { MailService } from './mail.service';
 import { MailResultPublisher } from './mail-result.publisher';

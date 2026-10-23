@@ -1,10 +1,9 @@
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
-import { App, cert, initializeApp } from 'firebase-admin/app';
+import { App, cert, initializeApp, ServiceAccount } from 'firebase-admin/app';
 import { getMessaging, Messaging, TokenMessage } from 'firebase-admin/messaging';
+import { readBase64JsonEnv } from '../../common/base64-env.util';
 import { DispatchOutcome, mergeOutcomes } from './dto/dispatch-outcome';
 
 /** FCM's limit for one sendEachForMulticast / sendEach call. */
@@ -26,8 +25,11 @@ export class FcmService implements OnModuleInit {
   }
 
   onModuleInit() {
-    const path = resolve(this.configService.getOrThrow<string>('FIREBASE_SERVICE_ACCOUNT_PATH'));
-    const serviceAccount = JSON.parse(readFileSync(path, 'utf8'));
+    // The legacy project's serviceAccountKey.json, base64-encoded in env.
+    const serviceAccount = readBase64JsonEnv<ServiceAccount & { project_id?: string }>(
+      this.configService,
+      'FIREBASE_SERVICE_ACCOUNT_B64',
+    );
     const app: App = initializeApp({ credential: cert(serviceAccount) }, 'legacy-push');
     this.messaging = getMessaging(app);
     this.logger.info({ projectId: serviceAccount.project_id }, 'Firebase initialized.');

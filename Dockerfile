@@ -22,8 +22,8 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /usr/src/app/dist ./dist
 
-# Firebase service account, APN .p8 keys and apn.json are NOT baked into the image -
-# mount them read-only at /usr/src/app/keys (see keys/README.md).
+# Credentials are NOT baked into the image - they arrive as env values
+# (FIREBASE_SERVICE_ACCOUNT_B64, APN_CONFIG_B64, RESEND_API_KEY; see README "Deploy").
 EXPOSE 4448
 
 CMD ["node", "dist/main.js"]

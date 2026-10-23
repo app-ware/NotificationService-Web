@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
 import { Resend } from 'resend';
-import type { EmailJob, EmailResult } from '../../contracts/email-job';
+import type { EmailJob, EmailResult } from '../../config/rabbitmq/contracts/email-job';
 import { MailTemplateService } from './mail-template.service';
 
 /** Resend's sandbox sender - works with only an API key, until MAIL_FROM is a verified domain. */

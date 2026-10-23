@@ -1,23 +1,22 @@
-import { readFileSync } from 'fs';
-import { dirname, resolve } from 'path';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
 import * as apn from '@parse/node-apn';
+import { readBase64JsonEnv } from '../../common/base64-env.util';
 import { DispatchOutcome } from './dto/dispatch-outcome';
 
 interface ApnKey {
-  /** .p8 file name, relative to the config file's folder. */
-  keyFile: string;
+  /** The .p8 file's contents (PEM text), inlined by scripts/encode-credentials.mjs. */
+  key: string;
   keyId: string;
   teamId: string;
 }
 
 /**
- * APN_CONFIG_PATH file shape (see keys/apn.example.json). Replaces the hardcoded
- * apnOptions* objects + bundle switch in Notification-Server-Web/server.js.
+ * APN_CONFIG_B64 shape (decoded) - built from keys/apn.json by `npm run encode-credentials`.
+ * Replaces the hardcoded apnOptions* objects + bundle switch in Notification-Server-Web/server.js.
  */
-interface ApnConfigFile {
+interface ApnConfig {
   production: boolean;
   /** Used for any bundle not listed below (legacy: the iCare key). */
   default: ApnKey;
@@ -30,8 +29,7 @@ interface ApnConfigFile {
  */
 @Injectable()
 export class ApnService implements OnModuleInit {
-  private config: ApnConfigFile;
-  private configDir: string;
+  private config: ApnConfig;
 
   constructor(
     private readonly configService: ConfigService,
@@ -41,9 +39,7 @@ export class ApnService implements OnModuleInit {
   }
 
   onModuleInit() {
-    const path = resolve(this.configService.getOrThrow<string>('APN_CONFIG_PATH'));
-    this.config = JSON.parse(readFileSync(path, 'utf8'));
-    this.configDir = dirname(path);
+    this.config = readBase64JsonEnv<ApnConfig>(this.configService, 'APN_CONFIG_B64');
     this.logger.info(
       { production: this.config.production, bundles: Object.keys(this.config.bundles) },
       'APN config loaded.',
@@ -95,7 +91,7 @@ export class ApnService implements OnModuleInit {
     const key = this.config.bundles[bundleId] ?? this.config.default;
     return {
       token: {
-        key: resolve(this.configDir, key.keyFile),
+        key: key.key,
         keyId: key.keyId,
         teamId: key.teamId,
       },

@@ -20,19 +20,21 @@ can't be updated only have tokens for those.
 ```
 src/
   main.ts                       # create app → connectRabbitConsumers → listen
-  config/rabbitmq/              # queue CONTRACT (identical in Nursery), consumer options, DLQ topology
+  config/rabbitmq/              # rabbitmq.constants.ts + contracts/ (PushJob, EmailJob) are the CONTRACT,
+                                #   identical in Nursery; plus consumer options and DLQ topology
   config/logger/                # pino
-  contracts/                    # PushJob, EmailJob - CONTRACT, identical in Nursery
   common/rmq-job.util.ts        # manual ack / dead-letter wrapper for every handler
   modules/push/                 # push.send → FcmService / ApnService
   modules/mail/                 # email.send → MailTemplateService (Handlebars) → Resend
   health.controller.ts          # GET /health
-keys/                           # credentials, gitignored - see keys/README.md
+keys/                           # LOCAL credential input for `npm run encode-credentials`, gitignored
+scripts/encode-credentials.mjs  # keys/ → FIREBASE_SERVICE_ACCOUNT_B64 + APN_CONFIG_B64 env lines
 ```
 
 ## Run locally
 
-1. `cp .env.example .env` and fill it in; put the credentials in `keys/` (see `keys/README.md`).
+1. `cp .env.example .env`, fill in Resend; put the credentials in `keys/` (see `keys/README.md`)
+   and run `npm run encode-credentials` - it writes the two push lines into `.env`.
 2. RabbitMQ: `docker compose up rabbitmq` from NurseryServices-Web (management UI on :15672).
 3. `npm install && npm run start:dev`
 
@@ -44,6 +46,40 @@ To test without the Nursery API, publish to `push_queue` / `email_queue` from th
 ```
 
 Set the message property `content_type` = `application/json`.
+
+## Deploy
+
+Image: `ghcr.io/app-ware/notificationservice`, built by `.github/workflows/deploy.yml` (same
+pipeline shape as NurseryServices-Web): push to `develop` → tag `develop` → **staging**; push to
+`main` → tag `latest`. **Production deploy is manual only** (Actions → Run workflow →
+`production`) while production push stays on the legacy pm2 server. The image tag on the server
+comes from `NOTIFICATION_IMAGE_TAG`. The service itself is declared in **NurseryServices-Web's
+`docker-compose.prod.yml`** - the compose file the servers run from `/opt/icare/backend`.
+
+One-time server prep (per server, before the first deploy) - **one file, nothing else**:
+
+```bash
+# On your machine: produce the two push lines (needs keys/ filled in)
+npm run encode-credentials -- --env .env.notification   # gitignored
+
+# On the server: /opt/icare/backend/.env.notification with exactly these 4 lines
+#   FIREBASE_SERVICE_ACCOUNT_B64=...   (from the generated file)
+#   APN_CONFIG_B64=...                 (from the generated file)
+#   RESEND_API_KEY=re_...
+#   MAIL_FROM=iCare Portal <noreply@icare-portal.com>
+chmod 600 /opt/icare/backend/.env.notification
+```
+
+`RABBITMQ_URL` is set by the compose file from the server's `RABBITMQ_USER`/`RABBITMQ_PASS` - not
+needed in `.env.notification`. `PORT` defaults to 4448.
+GitHub setup in this repo (same as NurseryServices-Web): environments `staging` and `production`
+holding `STAGING_HOST`/`STAGING_USER`/`STAGING_SSH_KEY` (+ optional `STAGING_PORT`) and
+`PROD_HOST`/`PROD_USER`/`PROD_SSH_KEY` (+ optional `PROD_PORT`), plus `GHCR_TOKEN` with read
+access to this package.
+
+Order: the Nursery change (compose entry + `PUSH_TRANSPORT=queue` in staging's `.env`) must be on
+the server before this workflow's first run, otherwise `docker compose pull notification-service`
+finds no such service.
 
 ## Behavior
 

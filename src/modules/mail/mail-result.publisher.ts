@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
-import type { EmailResult } from '../../contracts/email-job';
+import type { EmailResult } from '../../config/rabbitmq/contracts/email-job';
 
 /**
  * Where a send's outcome goes. A no-op today: Nursery marks a mail as sent when it queues

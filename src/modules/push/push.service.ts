@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 import type { TokenMessage } from 'firebase-admin/messaging';
-import { DeviceType, PushJob, PushNotificationType, PushRecipient } from '../../contracts/push-job';
+import { DeviceType, PushJob, PushNotificationType, PushRecipient } from '../../config/rabbitmq/contracts/push-job';
 import { FcmService } from './fcm.service';
 import { ApnService } from './apn.service';
 import { PushDispatchResult, mergeOutcomes } from './dto/dispatch-outcome';

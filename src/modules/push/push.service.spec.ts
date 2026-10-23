@@ -1,5 +1,5 @@
 import { PinoLogger } from 'nestjs-pino';
-import { DeviceType, PushJob, PushNotificationType } from '../../contracts/push-job';
+import { DeviceType, PushJob, PushNotificationType } from '../../config/rabbitmq/contracts/push-job';
 import { PushService } from './push.service';
 import { FcmService } from './fcm.service';
 import { ApnService } from './apn.service';

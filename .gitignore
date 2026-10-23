@@ -37,12 +37,14 @@ lerna-debug.log*
 
 # dotenv environment variable files
 .env
+.env.*
+!.env.example
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
 
-# push credentials (Firebase service account, APN .p8 keys, apn.json) - only the docs/example are tracked
+# push credentials (local input for `npm run encode-credentials`) - only the docs/example are tracked
 /keys/*
 !/keys/README.md
 !/keys/apn.example.json
