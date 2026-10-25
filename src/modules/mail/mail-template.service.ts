@@ -9,6 +9,19 @@ export const DEFAULT_TEMPLATE_ID = 1;
 /** Copied next to the compiled service by the nest-cli `assets` entry. */
 const TEMPLATES_DIR = join(__dirname, 'templates');
 
+/** Legacy body placeholders exposed by the parent email editor. */
+const BODY_PLACEHOLDER_VARIABLES: Readonly<Record<string, string>> = {
+  '@parent_name': 'parentName',
+  '@parent_ID': 'username',
+  '@parent_PIN': 'pin',
+  '@center_name': 'centerName',
+  '@center_address': 'centerAddress',
+  '@center_land_line': 'centerLandLine',
+};
+
+const BODY_PLACEHOLDER_PATTERN =
+  /@(parent_name|parent_ID|parent_PIN|center_name|center_address|center_land_line)(?![A-Za-z0-9_])/g;
+
 /**
  * Email layouts, one file per id: templates/<id>.hbs. Adding a layout is adding a file;
  * the id is what Nursery sends as EmailJob.templateId. Where Nursery stores a center's
@@ -46,6 +59,14 @@ export class MailTemplateService implements OnModuleInit {
       this.logger.warn({ templateId: id }, 'Unknown email template id - using the default.');
       id = DEFAULT_TEMPLATE_ID;
     }
-    return { html: this.templates.get(id)!(variables), templateId: id };
+    // Replace the original authored body in one pass. Values are escaped before entering
+    // the triple-brace HTML slot; tokens inside a value are never interpreted again.
+    const bodyHtml = variables.bodyHtml?.replace(BODY_PLACEHOLDER_PATTERN, (token) =>
+      Handlebars.escapeExpression(variables[BODY_PLACEHOLDER_VARIABLES[token]] ?? ''),
+    );
+    return {
+      html: this.templates.get(id)!({ ...variables, bodyHtml }),
+      templateId: id,
+    };
   }
 }
