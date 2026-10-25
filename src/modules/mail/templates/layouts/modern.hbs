@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="{{lang}}" dir="{{dir}}">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="{{colorScheme}}">
+  <meta name="supported-color-schemes" content="{{colorScheme}}">
+  <title>{{centerName}}</title>
+</head>
+<body style="margin:0; padding:0; background-color:{{colors.page}};" bgcolor="{{colors.page}}">
+  <!--
+    Layout "modern" - a card: accent bar, round center logo next to the center name, the
+    center's message, a credentials panel, store links, footer. Table-based with inline styles
+    only (Gmail/Outlook drop <style> blocks and ignore flexbox). Every value is escaped; bodyText
+    goes through nl2br (escaped, line breaks kept).
+  -->
+  <table role="presentation" border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="{{colors.page}}" style="background-color:{{colors.page}};">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" border="0" width="560" cellpadding="0" cellspacing="0" dir="{{dir}}" style="width:100%; max-width:560px; background-color:{{colors.card}}; border:1px solid {{colors.border}}; border-radius:12px; overflow:hidden; font-family:Arial, Helvetica, sans-serif;">
+
+          <!-- Accent bar -->
+          <tr><td height="6" style="height:6px; line-height:6px; font-size:0; background-color:{{colors.accent}};">&nbsp;</td></tr>
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:24px 32px 20px 32px; border-bottom:1px solid {{colors.border}};">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" dir="{{dir}}">
+                <tr>
+                  {{#if showLogo}}
+                  <td valign="middle" style="padding-{{alignEnd}}:16px;">
+                    <img src="{{logoUrl}}" alt="{{centerName}}" width="56" height="56" style="display:block; width:56px; height:56px; border-radius:50%; border:1px solid {{colors.border}};">
+                  </td>
+                  {{/if}}
+                  <td valign="middle" align="{{align}}" style="text-align:{{align}};">
+                    <div style="font-size:18px; font-weight:bold; line-height:24px; color:{{colors.heading}};">{{centerName}}</div>
+                    {{#if centerAddress}}
+                    <div style="font-size:13px; line-height:18px; color:{{colors.muted}}; padding-top:2px;">{{centerAddress}}</div>
+                    {{/if}}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Message -->
+          <tr>
+            <td align="{{align}}" style="padding:28px 32px 8px 32px; font-size:15px; line-height:23px; color:{{colors.text}}; text-align:{{align}};">
+              <div style="font-size:17px; font-weight:bold; color:{{colors.heading}}; padding-bottom:12px;">{{labels.greeting}} {{parentName}},</div>
+              {{nl2br bodyText}}
+            </td>
+          </tr>
+
+          <!-- Credentials -->
+          <tr>
+            <td style="padding:16px 32px 28px 32px;">
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" dir="{{dir}}" style="background-color:{{colors.panel}}; border:1px solid {{colors.border}}; border-radius:8px;">
+                <tr>
+                  <td colspan="2" align="{{align}}" style="padding:14px 20px 4px 20px; font-size:13px; color:{{colors.muted}}; text-align:{{align}};">{{labels.credentialsIntro}}</td>
+                </tr>
+                <tr>
+                  <td align="{{align}}" width="120" style="padding:6px 20px; font-size:13px; color:{{colors.muted}}; width:120px; text-align:{{align}};">{{labels.username}}</td>
+                  <td align="{{align}}" dir="ltr" style="padding:6px 20px; font-size:15px; font-weight:bold; color:{{colors.heading}}; font-family:Consolas, Menlo, monospace; text-align:{{align}};">{{username}}</td>
+                </tr>
+                <tr>
+                  <td align="{{align}}" width="120" style="padding:6px 20px 14px 20px; font-size:13px; color:{{colors.muted}}; width:120px; text-align:{{align}};">{{labels.pin}}</td>
+                  <td align="{{align}}" dir="ltr" style="padding:6px 20px 14px 20px; font-size:15px; font-weight:bold; color:{{colors.heading}}; font-family:Consolas, Menlo, monospace; text-align:{{align}};">{{pin}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          {{#if showStoreBadges}}
+          <!-- Store links -->
+          <tr>
+            <td align="center" style="padding:0 32px 24px 32px; font-size:13px; color:{{colors.muted}};">
+              {{labels.download}}<br><br>
+              {{#if assets}}
+              <a href="{{storeLinks.appStore}}" target="_blank"><img src="{{assets.appStoreBadge}}" alt="{{labels.appStore}}" height="40" style="height:40px; border:0;"></a>
+              <a href="{{storeLinks.googlePlay}}" target="_blank"><img src="{{assets.googlePlayBadge}}" alt="{{labels.googlePlay}}" height="40" style="height:40px; border:0;"></a>
+              {{else}}
+              <a href="{{storeLinks.appStore}}" target="_blank" style="display:inline-block; padding:9px 16px; background-color:{{colors.accent}}; color:#ffffff; border-radius:6px; font-weight:bold; text-decoration:none;">{{labels.appStore}}</a>
+              &nbsp;
+              <a href="{{storeLinks.googlePlay}}" target="_blank" style="display:inline-block; padding:9px 16px; background-color:{{colors.accent}}; color:#ffffff; border-radius:6px; font-weight:bold; text-decoration:none;">{{labels.googlePlay}}</a>
+              {{/if}}
+            </td>
+          </tr>
+          {{/if}}
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding:16px 32px; background-color:{{colors.panel}}; border-top:1px solid {{colors.border}}; font-size:12px; line-height:18px; color:{{colors.muted}};">
+              {{centerName}}{{#if centerLandLine}} &middot; {{labels.phone}}: <span dir="ltr">{{centerLandLine}}</span>{{/if}}<br>
+              {{labels.poweredBy}}
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

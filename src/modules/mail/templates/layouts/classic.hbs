@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="{{lang}}" dir="{{dir}}">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="{{colorScheme}}">
+  <meta name="supported-color-schemes" content="{{colorScheme}}">
+  <title>{{centerName}}</title>
+</head>
+<body style="margin:0; padding:0; background-color:{{colors.page}};" bgcolor="{{colors.page}}">
+  <!--
+    Layout "classic" - port of the legacy credential email (ICareService/scripts/email-template.html
+    + email-template-arabic.html): iCare logo on top, center header panel with the center logo at
+    the end side, greeting, the center's message, credentials, store links, "Powered by AppWare".
+    Table-based with inline styles only (Gmail/Outlook drop <style> blocks and ignore flexbox).
+    Every value is escaped; bodyText goes through nl2br (escaped, line breaks kept).
+  -->
+  <table role="presentation" border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="{{colors.page}}" style="background-color:{{colors.page}};">
+    <tr>
+      <td align="center" valign="top" style="padding:24px 12px;">
+        <table role="presentation" border="0" width="600" cellpadding="0" cellspacing="0" dir="{{dir}}" style="width:100%; max-width:600px;">
+
+          <!-- iCare logo -->
+          <tr>
+            <td align="center" style="padding-bottom:12px;">
+              {{#if assets}}
+              <img src="{{assets.icareLogo}}" alt="iCare" height="64" style="display:block; height:64px; border:0;">
+              {{else}}
+              <span style="font-family:Helvetica, Arial, sans-serif; font-size:28px; font-weight:bold; color:{{colors.accent}};">iCare</span>
+              {{/if}}
+            </td>
+          </tr>
+
+          <!-- Center header -->
+          <tr>
+            <td style="background-color:{{colors.panel}}; border-top:4px solid {{colors.accent}}; padding:14px 16px;">
+              <table role="presentation" border="0" width="100%" cellpadding="0" cellspacing="0" dir="{{dir}}">
+                <tr>
+                  <td align="{{align}}" valign="middle" style="font-family:Helvetica, Arial, sans-serif; font-size:16px; font-weight:bold; color:{{colors.heading}}; text-align:{{align}};">
+                    {{centerName}}
+                    {{#if centerAddress}}
+                    <br><span style="font-size:12px; font-weight:normal; color:{{colors.muted}};">{{centerAddress}}</span>
+                    {{/if}}
+                    {{#if centerLandLine}}
+                    <br><span style="font-size:12px; font-weight:normal; color:{{colors.muted}};">{{labels.phone}}: <a href="tel:{{centerLandLine}}" dir="ltr" style="color:{{colors.accent}}; text-decoration:none;">{{centerLandLine}}</a></span>
+                    {{/if}}
+                  </td>
+                  {{#if showLogo}}
+                  <td align="{{alignEnd}}" valign="middle" width="110" style="width:110px;">
+                    <img src="{{logoUrl}}" alt="{{centerName}}" style="display:block; max-height:96px; max-width:96px; border:0;">
+                  </td>
+                  {{/if}}
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Message + credentials -->
+          <tr>
+            <td align="{{align}}" style="background-color:{{colors.card}}; padding:24px; font-family:Helvetica, Arial, sans-serif; color:{{colors.text}}; text-align:{{align}};">
+              <div style="font-size:18px; font-weight:600; color:{{colors.heading}};">{{labels.greeting}} {{parentName}},</div>
+              <div style="padding-top:16px; font-size:14px; line-height:22px;">{{nl2br bodyText}}</div>
+              <div style="padding-top:20px; font-size:14px; line-height:24px;">
+                {{labels.credentialsIntro}}<br>
+                {{labels.username}}: <b dir="ltr" style="color:{{colors.heading}};">{{username}}</b><br>
+                {{labels.pin}}: <b dir="ltr" style="color:{{colors.heading}};">{{pin}}</b>
+              </div>
+              <div style="padding-top:20px; font-size:14px;">{{labels.signOff}}</div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding:20px 24px; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:16px; color:{{colors.muted}};">
+              {{#if showStoreBadges}}
+              {{labels.download}}<br><br>
+              {{#if assets}}
+              <a href="{{storeLinks.appStore}}" target="_blank"><img src="{{assets.appStoreBadge}}" alt="{{labels.appStore}}" height="40" style="height:40px; border:0;"></a>
+              <a href="{{storeLinks.googlePlay}}" target="_blank"><img src="{{assets.googlePlayBadge}}" alt="{{labels.googlePlay}}" height="40" style="height:40px; border:0;"></a>
+              {{else}}
+              <a href="{{storeLinks.appStore}}" target="_blank" style="display:inline-block; padding:8px 14px; border:1px solid {{colors.accent}}; color:{{colors.accent}}; font-weight:bold; text-decoration:none;">{{labels.appStore}}</a>
+              &nbsp;
+              <a href="{{storeLinks.googlePlay}}" target="_blank" style="display:inline-block; padding:8px 14px; border:1px solid {{colors.accent}}; color:{{colors.accent}}; font-weight:bold; text-decoration:none;">{{labels.googlePlay}}</a>
+              {{/if}}
+              <br><br>
+              {{/if}}
+              <strong>{{labels.poweredBy}}</strong><br>
+              <a href="https://app-ware.com" target="_blank" style="color:{{colors.muted}};">www.app-ware.com</a>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

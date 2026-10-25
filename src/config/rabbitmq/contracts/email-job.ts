@@ -1,10 +1,40 @@
 /**
  * `email.send` payload - CONTRACT, keep identical in NurseryServices-Web.
  *
- * Nursery reads the center's data and body text from its DB and sends variables; this
- * service owns the HTML layouts (templates/email/<templateId>.hbs) and renders them.
- * Payloads may carry credentials (parent PIN) - never log them.
+ * Nursery sends DATA (variables + the center's design choices); this service owns all HTML:
+ * the layouts in src/modules/mail/templates/layouts/<layoutKey>.hbs. Payloads may carry
+ * credentials (parent PIN) - never log them.
  */
+
+/** Layouts this service ships. Nursery validates a center's choice against this list. */
+export const MAIL_LAYOUTS = ['classic', 'modern'] as const;
+export type MailLayoutKey = (typeof MAIL_LAYOUTS)[number];
+export const DEFAULT_MAIL_LAYOUT: MailLayoutKey = 'classic';
+
+export const MAIL_THEMES = ['light', 'dark'] as const;
+export type MailTheme = (typeof MAIL_THEMES)[number];
+
+export type MailLanguage = 'en' | 'ar';
+
+/**
+ * A center's design choices. Every field is optional - missing, null or invalid falls back to
+ * the default, so a job without `design` renders exactly like a center that never chose.
+ */
+export interface EmailDesign {
+  /** One of MAIL_LAYOUTS; unknown → DEFAULT_MAIL_LAYOUT. */
+  layoutKey?: string | null;
+  /** → 'light'. */
+  theme?: MailTheme | null;
+  /** Labels + direction (ar = right-to-left); → 'en'. */
+  language?: MailLanguage | null;
+  /** '#rrggbb'; anything else → the layout's brand color. */
+  accentColor?: string | null;
+  /** Show the center's logo (when it has one); → true. */
+  showLogo?: boolean | null;
+  /** Show the App Store / Google Play links; → true. */
+  showStoreBadges?: boolean | null;
+}
+
 export interface EmailJob {
   jobId: string;
   correlationId?: string;
@@ -13,11 +43,13 @@ export interface EmailJob {
   subject: string;
   /** Overrides MAIL_FROM for this one send. */
   from?: string;
-  /** Layout id. Missing, null or unknown → the default layout (1). */
+  design?: EmailDesign;
+  /** @deprecated Numbered layouts were replaced by `design.layoutKey`; ignored when present. */
   templateId?: number | null;
   /**
-   * Layout variables. `bodyHtml` is inserted unescaped (center-authored HTML from
-   * MailBodyTemplate); every other value is HTML-escaped.
+   * Layout variables, all plain text - the layout HTML-escapes every value. `bodyText` is the
+   * center's message (line breaks kept). `bodyHtml` is the pre-2026-10-25 name for the same
+   * text, still accepted so jobs from an older Nursery render; prefer `bodyText`.
    */
   variables: Record<string, string | null | undefined>;
   meta?: Record<string, string | number>;
