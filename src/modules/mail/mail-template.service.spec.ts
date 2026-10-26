@@ -130,4 +130,16 @@ describe('MailTemplateService', () => {
       expect(render({}, { ...rest, bodyHtml: 'Old field <b>text</b>' })).toContain('Old field &lt;b&gt;text&lt;/b&gt;');
     });
   });
+
+  it('treats the body as plain text: no HTML, no Handlebars, no worker-side @placeholder replacement', () => {
+    // Nursery replaces @parent_name & co. before queueing; the worker must not interpret anything.
+    const { html } = service.render(null, {
+      bodyText: '<img src=x onerror="alert(1)"> {{username}} @parent_PIN',
+      username: 'secret-login',
+      pin: '0042',
+    });
+
+    expect(html).toContain('&lt;img src&#x3D;x onerror&#x3D;&quot;alert(1)&quot;&gt; {{username}} @parent_PIN');
+    expect(html).not.toContain('<img src=x');
+  });
 });
