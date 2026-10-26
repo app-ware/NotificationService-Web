@@ -16,9 +16,23 @@ export type MailTheme = (typeof MAIL_THEMES)[number];
 
 export type MailLanguage = 'en' | 'ar';
 
+/** What every missing / null / invalid design field falls back to - one definition for both sides. */
+export const DEFAULT_MAIL_DESIGN = {
+  layoutKey: DEFAULT_MAIL_LAYOUT,
+  theme: 'light' as MailTheme,
+  language: 'en' as MailLanguage,
+  /** iCare brand blue (iCareWebApp's primary). */
+  accentColor: '#15688E',
+  showLogo: true,
+  showStoreBadges: true,
+} as const;
+
+/** The only accepted accentColor shape - the value lands inside inline style attributes. */
+export const MAIL_ACCENT_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
+
 /**
  * A center's design choices. Every field is optional - missing, null or invalid falls back to
- * the default, so a job without `design` renders exactly like a center that never chose.
+ * DEFAULT_MAIL_DESIGN, so a job without `design` renders exactly like a center that never chose.
  */
 export interface EmailDesign {
   /** One of MAIL_LAYOUTS; unknown → DEFAULT_MAIL_LAYOUT. */

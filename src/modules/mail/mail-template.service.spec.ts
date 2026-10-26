@@ -28,6 +28,15 @@ describe('MailTemplateService', () => {
     service = create();
   });
 
+  it('classic shows the portal-hosted iCare logo by default, overridable by MAIL_LOGO_URL', () => {
+    expect(service.render({ layoutKey: 'classic' }, variables).html).toContain(
+      'https://icare-portal.com/en/assets/images/logos/LogoHQ.png',
+    );
+    expect(
+      create({ MAIL_LOGO_URL: 'https://files.example/email/logo.png' }).render({ layoutKey: 'classic' }, variables).html,
+    ).toContain('https://files.example/email/logo.png');
+  });
+
   describe('design resolution', () => {
     it.each([undefined, null, {}, { layoutKey: 'nope' }])('falls back to classic/light/en for %p', (design) => {
       expect(service.render(design as never, variables).design).toEqual({
@@ -97,11 +106,23 @@ describe('MailTemplateService', () => {
       expect(render({ showStoreBadges: false })).not.toContain('play.google.com');
     });
 
-    it('uses hosted badge images once MAIL_ASSETS_BASE_URL is set', () => {
-      const html = create({ MAIL_ASSETS_BASE_URL: 'https://cdn.example/email/' })
+    it('links to the portal, not the legacy app-ware.com site', () => {
+      const html = render();
+      expect(html).toContain('href="https://icare-portal.com/en"');
+      expect(html).not.toContain('app-ware.com');
+    });
+
+    it('uses badge images only when both are configured', () => {
+      const both = create({
+        MAIL_APP_STORE_BADGE_URL: 'https://files.example/email/AppStore.png',
+        MAIL_GOOGLE_PLAY_BADGE_URL: 'https://files.example/email/GooglePlay.png',
+      }).render({ layoutKey }, variables).html;
+      expect(both).toContain('https://files.example/email/AppStore.png');
+      expect(both).toContain('https://files.example/email/GooglePlay.png');
+
+      const one = create({ MAIL_APP_STORE_BADGE_URL: 'https://files.example/email/AppStore.png' })
         .render({ layoutKey }, variables).html;
-      expect(html).toContain('https://cdn.example/email/GooglePlay.png');
-      expect(html).toContain('https://cdn.example/email/AppStore.png');
+      expect(one).not.toContain('AppStore.png');
     });
 
     it('still renders a job from an older Nursery that sends the text as bodyHtml', () => {

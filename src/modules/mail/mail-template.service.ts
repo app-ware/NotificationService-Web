@@ -13,6 +13,13 @@ const LAYOUTS_DIR = join(__dirname, 'templates', 'layouts');
 /** Legacy iCare Kids store pages (ICarePlayStore / ICareAppStore in the legacy web.config). */
 const DEFAULT_APP_STORE_URL = 'https://itunes.apple.com/lb/app/icare-kids/id717741889?mt=8';
 const DEFAULT_PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.icare.kids';
+/** The new system's home - the footer link and the logo's target (legacy linked app-ware.com). */
+const DEFAULT_PORTAL_URL = 'https://icare-portal.com/en';
+/**
+ * The portal already serves the current iCare logo publicly (iCareWebApp
+ * public/assets/images/logos/LogoHQ.png). PNG on purpose: Outlook doesn't render WebP.
+ */
+const DEFAULT_LOGO_URL = 'https://icare-portal.com/en/assets/images/logos/LogoHQ.png';
 
 /**
  * Email layouts, one file per key: templates/layouts/<layoutKey>.hbs (keys listed in the
@@ -24,18 +31,25 @@ const DEFAULT_PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=co
 export class MailTemplateService implements OnModuleInit {
   private readonly handlebars = Handlebars.create();
   private readonly layouts = new Map<string, Handlebars.TemplateDelegate>();
-  private readonly assetsBaseUrl: string | null;
-  private readonly storeLinks: { appStore: string; googlePlay: string };
+  private readonly links: { appStore: string; googlePlay: string; portal: string };
+  private readonly images: { logo: string; appStoreBadge: string | null; googlePlayBadge: string | null };
 
   constructor(
     private readonly configService: ConfigService,
     private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(MailTemplateService.name);
-    this.assetsBaseUrl = this.configService.get<string>('MAIL_ASSETS_BASE_URL')?.replace(/\/+$/, '') || null;
-    this.storeLinks = {
-      appStore: this.configService.get<string>('MAIL_APP_STORE_URL') || DEFAULT_APP_STORE_URL,
-      googlePlay: this.configService.get<string>('MAIL_PLAY_STORE_URL') || DEFAULT_PLAY_STORE_URL,
+    const env = (key: string) => this.configService.get<string>(key) || null;
+    this.links = {
+      appStore: env('MAIL_APP_STORE_URL') ?? DEFAULT_APP_STORE_URL,
+      googlePlay: env('MAIL_PLAY_STORE_URL') ?? DEFAULT_PLAY_STORE_URL,
+      portal: env('MAIL_PORTAL_URL') ?? DEFAULT_PORTAL_URL,
+    };
+    // Badges have no public home yet (assets/email/README.md) - unset → text link buttons.
+    this.images = {
+      logo: env('MAIL_LOGO_URL') ?? DEFAULT_LOGO_URL,
+      appStoreBadge: env('MAIL_APP_STORE_BADGE_URL'),
+      googlePlayBadge: env('MAIL_GOOGLE_PLAY_BADGE_URL'),
     };
 
     // Escapes the text first, then turns its line breaks into <br> - the center's message keeps
@@ -59,7 +73,7 @@ export class MailTemplateService implements OnModuleInit {
       throw new Error(`Email layouts missing from ${LAYOUTS_DIR}: ${missing.join(', ')}.`);
     }
     this.logger.info(
-      { layouts: [...this.layouts.keys()], assetsBaseUrl: this.assetsBaseUrl ?? '(none - text fallbacks)' },
+      { layouts: [...this.layouts.keys()], storeBadges: this.images.appStoreBadge ? 'images' : 'text buttons' },
       'Email layouts loaded.',
     );
   }
@@ -89,15 +103,13 @@ export class MailTemplateService implements OnModuleInit {
       colors: { ...MAIL_PALETTES[design.theme], accent: design.accentColor },
       showLogo: design.showLogo && !!variables.logoUrl,
       showStoreBadges: design.showStoreBadges,
-      storeLinks: this.storeLinks,
-      // Without a hosting location the layouts fall back to text (wordmark, link buttons).
-      assets: this.assetsBaseUrl
-        ? {
-            icareLogo: `${this.assetsBaseUrl}/IcareLogo.png`,
-            appStoreBadge: `${this.assetsBaseUrl}/AppStore.png`,
-            googlePlayBadge: `${this.assetsBaseUrl}/GooglePlay.png`,
-          }
-        : null,
+      links: this.links,
+      logoImage: this.images.logo,
+      // Both badge images or neither - one image beside one text button looks broken.
+      badgeImages:
+        this.images.appStoreBadge && this.images.googlePlayBadge
+          ? { appStore: this.images.appStoreBadge, googlePlay: this.images.googlePlayBadge }
+          : null,
     };
   }
 }

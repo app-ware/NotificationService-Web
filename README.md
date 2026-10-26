@@ -81,6 +81,15 @@ Order: the Nursery change (compose entry + `PUSH_TRANSPORT=queue` in staging's `
 the server before this workflow's first run, otherwise `docker compose pull notification-service`
 finds no such service.
 
+## Internal HTTP
+
+Besides `GET /health`, one internal route: `POST /mail/preview` (`MailPreviewController`) - body
+`{ design, variables }` (the same shapes as an `EmailJob`) → `{ html, design }`, rendered by the same
+layouts as a real send; nothing is queued or sent. Used by Nursery's Settings email preview.
+Guarded by `X-Internal-API-Key` = `NOTIFICATION_SERVICE_API_KEY` (`InternalApiKeyGuard`,
+constant-time compare); without the key configured the route answers 503 (fail closed). No public
+port - Nursery calls `http://notification-service:4448` inside the Docker network.
+
 ## Behavior
 
 - **Ack / dead-letter**: a handler acks when the job completes - including jobs where some
@@ -96,6 +105,7 @@ finds no such service.
   right-to-left), `accentColor` (#rrggbb) and the logo / store-link toggles; anything missing or
   invalid falls back to classic / light / en / brand blue / shown (`mail-design.ts`).
   **Nursery sends data, never HTML**: every variable is escaped; `bodyText` (the center's
-  message) is escaped and keeps its line breaks. Images come from `MAIL_ASSETS_BASE_URL`
-  (`assets/email/README.md`); without it the layouts fall back to text. Jobs from an older
+  message) is escaped and keeps its line breaks. Images: the iCare logo defaults to the one the portal already serves; the store badges come
+  from `MAIL_APP_STORE_BADGE_URL` / `MAIL_GOOGLE_PLAY_BADGE_URL` (`assets/email/README.md`) and fall
+  back to text buttons; links go to the stores and to the portal (`MAIL_PORTAL_URL`). Jobs from an older
   Nursery (numbered `templateId`, text in `bodyHtml`) still render.

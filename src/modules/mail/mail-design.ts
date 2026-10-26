@@ -1,6 +1,7 @@
 import {
-  DEFAULT_MAIL_LAYOUT,
+  DEFAULT_MAIL_DESIGN,
   EmailDesign,
+  MAIL_ACCENT_COLOR_PATTERN,
   MAIL_LAYOUTS,
   MAIL_THEMES,
   MailLanguage,
@@ -8,10 +9,8 @@ import {
   MailTheme,
 } from '../../config/rabbitmq/contracts/email-job';
 
-/** iCare brand blue (iCareWebApp's primary) - every layout's accent unless a center picks one. */
-export const DEFAULT_ACCENT_COLOR = '#15688E';
-
-const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+/** Every layout's accent unless a center picks one (defined in the contract). */
+export const DEFAULT_ACCENT_COLOR = DEFAULT_MAIL_DESIGN.accentColor;
 
 /** A design with every default applied - what a layout actually renders with. */
 export interface ResolvedDesign {
@@ -26,15 +25,17 @@ export interface ResolvedDesign {
 export function resolveDesign(design: EmailDesign | null | undefined): ResolvedDesign {
   const layoutKey = (MAIL_LAYOUTS as readonly string[]).includes(design?.layoutKey ?? '')
     ? (design!.layoutKey as MailLayoutKey)
-    : DEFAULT_MAIL_LAYOUT;
-  const theme = (MAIL_THEMES as readonly string[]).includes(design?.theme ?? '') ? design!.theme! : 'light';
+    : DEFAULT_MAIL_DESIGN.layoutKey;
+  const theme = (MAIL_THEMES as readonly string[]).includes(design?.theme ?? '')
+    ? design!.theme!
+    : DEFAULT_MAIL_DESIGN.theme;
   return {
     layoutKey,
     theme,
-    language: design?.language === 'ar' ? 'ar' : 'en',
-    accentColor: HEX_COLOR.test(design?.accentColor ?? '') ? design!.accentColor! : DEFAULT_ACCENT_COLOR,
-    showLogo: design?.showLogo !== false,
-    showStoreBadges: design?.showStoreBadges !== false,
+    language: design?.language === 'ar' ? 'ar' : DEFAULT_MAIL_DESIGN.language,
+    accentColor: MAIL_ACCENT_COLOR_PATTERN.test(design?.accentColor ?? '') ? design!.accentColor! : DEFAULT_ACCENT_COLOR,
+    showLogo: design?.showLogo ?? DEFAULT_MAIL_DESIGN.showLogo,
+    showStoreBadges: design?.showStoreBadges ?? DEFAULT_MAIL_DESIGN.showStoreBadges,
   };
 }
 
