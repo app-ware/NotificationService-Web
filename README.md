@@ -6,7 +6,7 @@ only turns them into FCM / APN / Resend calls.
 
 ```
 Nursery API ──emit('push.send')──▶ push_queue  ──▶ PushModule ──▶ FCM (legacy project) / APN
-            ──emit('email.send')─▶ email_queue ──▶ MailModule ──▶ Resend (layout templates/<id>.hbs)
+            ──emit('email.send')─▶ email_queue ──▶ MailModule ──▶ Resend (templates/layouts/<layoutKey>.hbs)
                                         │ nack (unexpected failure)
                                         ▼
                      notifications.dlx ──▶ push_queue.dlq / email_queue.dlq
@@ -81,6 +81,15 @@ Order: the Nursery change (compose entry + `PUSH_TRANSPORT=queue` in staging's `
 the server before this workflow's first run, otherwise `docker compose pull notification-service`
 finds no such service.
 
+## Internal HTTP
+
+Besides `GET /health`, one internal route: `POST /mail/preview` (`MailPreviewController`) - body
+`{ design, variables }` (the same shapes as an `EmailJob`) → `{ html, design }`, rendered by the same
+layouts as a real send; nothing is queued or sent. Used by Nursery's Settings email preview.
+Guarded by `X-Internal-API-Key` = `NOTIFICATION_SERVICE_API_KEY` (`InternalApiKeyGuard`,
+constant-time compare); without the key configured the route answers 503 (fail closed). No public
+port - Nursery calls `http://notification-service:4448` inside the Docker network.
+
 ## Behavior
 
 - **Ack / dead-letter**: a handler acks when the job completes - including jobs where some
@@ -90,6 +99,13 @@ finds no such service.
   protected by Resend's idempotency key (= jobId); a push could be delivered twice.
 - **Logs**: one line per job tagged with `jobId` (the same id Nursery logs when publishing).
   Payloads are never logged - email jobs carry parent PINs.
-- **Email layouts**: `src/modules/mail/templates/<id>.hbs`. A missing, null or unknown
-  `templateId` falls back to `1.hbs`. `bodyHtml` is inserted unescaped; all other variables
-  are escaped.
+- **Email layouts**: `src/modules/mail/templates/layouts/<layoutKey>.hbs` - `classic` (port of
+  the legacy credential email) and `modern`; the list is `MAIL_LAYOUTS` in the contract. A job's
+  `design` picks the layout, `theme` (light/dark), `language` (en/ar - Arabic renders
+  right-to-left), `accentColor` (#rrggbb) and the logo / store-link toggles; anything missing or
+  invalid falls back to classic / light / en / brand blue / shown (`mail-design.ts`).
+  **Nursery sends data, never HTML**: every variable is escaped; `bodyText` (the center's
+  message) is escaped and keeps its line breaks. Images: the iCare logo defaults to the one the portal already serves; the store badges come
+  from `MAIL_APP_STORE_BADGE_URL` / `MAIL_GOOGLE_PLAY_BADGE_URL` (`assets/email/README.md`) and fall
+  back to text buttons; links go to the stores and to the portal (`MAIL_PORTAL_URL`). Jobs from an older
+  Nursery (numbered `templateId`, text in `bodyHtml`) still render.
