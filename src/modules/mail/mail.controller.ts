@@ -20,13 +20,14 @@ export class MailController {
   @EventPattern(PATTERNS.EMAIL_SEND)
   async handleEmailSend(@Payload() job: EmailJob, @Ctx() ctx: RmqContext): Promise<void> {
     await runRmqJob(ctx, this.logger, job?.jobId, async () => {
-      const { design, ...result } = await this.mailService.send(job);
+      const { design, template, ...result } = await this.mailService.send(job);
 
-      // Never log `to`/variables - they carry personal data and credentials.
+      // Never log `to`/variables - they carry personal data, credentials and one-time links.
       const summary = {
         jobId: job.jobId,
         correlationId: job.correlationId,
-        layout: design.layoutKey,
+        template,
+        layout: template === 'user-invite' ? null : design.layoutKey,
         theme: design.theme,
         language: design.language,
         providerId: result.providerId,
