@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="{{lang}}" dir="{{dir}}">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="{{colorScheme}}">
+  <meta name="supported-color-schemes" content="{{colorScheme}}">
+  <title>{{labels.title}}</title>
+</head>
+<body style="margin:0; padding:0; background-color:{{colors.page}};" bgcolor="{{colors.page}}">
+  <!--
+    Template "user-invite" - fixed design (based on layout "modern", not editable): a new center
+    user's "set your password" link. The center's language, theme, accent and logo choice apply.
+    Table-based with inline styles only (Gmail/Outlook drop <style> blocks). Every value is
+    escaped; setPasswordUrl is checked to be http(s) before rendering.
+  -->
+  <table role="presentation" border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="{{colors.page}}" style="background-color:{{colors.page}};">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" border="0" width="560" cellpadding="0" cellspacing="0" dir="{{dir}}" style="width:100%; max-width:560px; background-color:{{colors.card}}; border:1px solid {{colors.border}}; border-radius:12px; overflow:hidden; font-family:Arial, Helvetica, sans-serif;">
+
+          <!-- Accent bar -->
+          <tr><td height="6" style="height:6px; line-height:6px; font-size:0; background-color:{{colors.accent}};">&nbsp;</td></tr>
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:24px 32px 20px 32px; border-bottom:1px solid {{colors.border}};">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" dir="{{dir}}">
+                <tr>
+                  {{#if showLogo}}
+                  <td valign="middle" style="padding-{{alignEnd}}:16px;">
+                    <img src="{{logoUrl}}" alt="{{centerName}}" width="56" height="56" style="display:block; width:56px; height:56px; border-radius:50%; border:1px solid {{colors.border}};">
+                  </td>
+                  {{/if}}
+                  <td valign="middle" align="{{align}}" style="text-align:{{align}};">
+                    <div style="font-size:18px; font-weight:bold; line-height:24px; color:{{colors.heading}};">{{centerName}}</div>
+                    {{#if centerAddress}}
+                    <div style="font-size:13px; line-height:18px; color:{{colors.muted}}; padding-top:2px;">{{centerAddress}}</div>
+                    {{/if}}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Message -->
+          <tr>
+            <td align="{{align}}" style="padding:28px 32px 8px 32px; font-size:15px; line-height:23px; color:{{colors.text}}; text-align:{{align}};">
+              <div style="font-size:17px; font-weight:bold; color:{{colors.heading}}; padding-bottom:12px;">{{labels.greeting}} {{userName}},</div>
+              {{labels.intro}} {{centerName}}.
+            </td>
+          </tr>
+
+          <!-- Username -->
+          <tr>
+            <td style="padding:16px 32px 8px 32px;">
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" dir="{{dir}}" style="background-color:{{colors.panel}}; border:1px solid {{colors.border}}; border-radius:8px;">
+                <tr>
+                  <td align="{{align}}" width="140" style="padding:14px 20px; font-size:13px; color:{{colors.muted}}; width:140px; text-align:{{align}};">{{labels.usernameLabel}}</td>
+                  <td align="{{align}}" dir="ltr" style="padding:14px 20px; font-size:15px; font-weight:bold; color:{{colors.heading}}; font-family:Consolas, Menlo, monospace; text-align:{{align}};">{{username}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Action -->
+          <tr>
+            <td align="center" style="padding:24px 32px 8px 32px;">
+              <a href="{{setPasswordUrl}}" target="_blank" style="display:inline-block; padding:12px 28px; background-color:{{colors.accent}}; color:#ffffff; border-radius:6px; font-size:15px; font-weight:bold; text-decoration:none;">{{labels.action}}</a>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:8px 32px 4px 32px; font-size:13px; line-height:19px; color:{{colors.muted}};">
+              {{labels.validFor}} {{validDays}} {{labels.days}}
+            </td>
+          </tr>
+          <tr>
+            <td align="{{align}}" style="padding:16px 32px 24px 32px; font-size:12px; line-height:18px; color:{{colors.muted}}; text-align:{{align}};">
+              {{labels.copyLink}}<br>
+              <span dir="ltr" style="word-break:break-all; color:{{colors.text}};">{{setPasswordUrl}}</span><br><br>
+              {{labels.ignore}}
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding:16px 32px; background-color:{{colors.panel}}; border-top:1px solid {{colors.border}}; font-size:12px; line-height:18px; color:{{colors.muted}};">
+              {{centerName}}{{#if centerLandLine}} &middot; {{labels.phone}}: <span dir="ltr">{{centerLandLine}}</span>{{/if}}<br>
+              <a href="{{links.portal}}" target="_blank" style="color:{{colors.muted}};">icare-portal.com</a> &middot; {{labels.poweredBy}}
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

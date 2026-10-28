@@ -2,9 +2,30 @@
  * `email.send` payload - CONTRACT, keep identical in NurseryServices-Web.
  *
  * Nursery sends DATA (variables + the center's design choices); this service owns all HTML:
- * the layouts in src/modules/mail/templates/layouts/<layoutKey>.hbs. Payloads may carry
- * credentials (parent PIN) - never log them.
+ * the layouts in src/modules/mail/templates/layouts/<layoutKey>.hbs and the fixed templates in
+ * src/modules/mail/templates/<template>.hbs. Payloads may carry credentials (parent PIN) or a
+ * one-time set-password link - never log them.
  */
+
+/**
+ * Which email a job is. Missing / null / unknown → 'parent-credentials' (every job before
+ * 2026-10-27), so older producers keep rendering exactly as before.
+ * - 'parent-credentials': the center's chosen layout (design.layoutKey) + its own message text.
+ * - 'user-invite': one fixed design (based on "modern", not editable) with a "set your password"
+ *   link for a new center user. design.language / theme / accentColor / showLogo apply;
+ *   design.layoutKey and showStoreBadges are ignored. Variables: see USER_INVITE_VARIABLES.
+ */
+export const MAIL_TEMPLATES = ['parent-credentials', 'user-invite'] as const;
+export type MailTemplateKey = (typeof MAIL_TEMPLATES)[number];
+export const DEFAULT_MAIL_TEMPLATE: MailTemplateKey = 'parent-credentials';
+
+/**
+ * 'user-invite' variables (plain text, escaped by the template). `setPasswordUrl` must be an
+ * absolute http(s) URL - anything else dead-letters the job. It carries a one-time token: never log it.
+ */
+export const USER_INVITE_VARIABLES = [
+  'centerName', 'centerAddress', 'centerLandLine', 'logoUrl', 'userName', 'username', 'setPasswordUrl', 'validDays',
+] as const;
 
 /** Layouts this service ships. Nursery validates a center's choice against this list. */
 export const MAIL_LAYOUTS = ['classic', 'modern'] as const;
@@ -57,6 +78,8 @@ export interface EmailJob {
   subject: string;
   /** Overrides MAIL_FROM for this one send. */
   from?: string;
+  /** One of MAIL_TEMPLATES; missing / unknown → DEFAULT_MAIL_TEMPLATE. */
+  template?: string | null;
   design?: EmailDesign;
   /** @deprecated Numbered layouts were replaced by `design.layoutKey`; ignored when present. */
   templateId?: number | null;

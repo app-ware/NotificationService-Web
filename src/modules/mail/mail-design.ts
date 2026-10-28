@@ -70,6 +70,36 @@ export const MAIL_LABELS: Record<MailLanguage, Record<string, string>> = {
   },
 };
 
+/** Fixed wording of the 'user-invite' email (set-password link for a new center user). */
+export const INVITE_LABELS: Record<MailLanguage, Record<string, string>> = {
+  en: {
+    title: 'Set your password',
+    greeting: 'Hello',
+    intro: 'An iCare account has been created for you at',
+    usernameLabel: 'Your username',
+    action: 'Set your password',
+    validFor: 'This link is valid for',
+    days: 'days and can be used once.',
+    copyLink: "If the button doesn't work, copy this link into your browser:",
+    ignore: "If you weren't expecting this email, you can ignore it.",
+    phone: 'Center Phone',
+    poweredBy: 'Powered by AppWare',
+  },
+  ar: {
+    title: 'تعيين كلمة المرور',
+    greeting: 'مرحباً',
+    intro: 'تم إنشاء حساب iCare لك في',
+    usernameLabel: 'اسم المستخدم',
+    action: 'تعيين كلمة المرور',
+    validFor: 'هذا الرابط صالح لمدة',
+    days: 'أيام ويمكن استخدامه مرة واحدة.',
+    copyLink: 'إذا لم يعمل الزر، انسخ هذا الرابط في المتصفح:',
+    ignore: 'إذا لم تكن تتوقع هذه الرسالة، يمكنك تجاهلها.',
+    phone: 'هاتف المركز',
+    poweredBy: 'Powered by AppWare',
+  },
+};
+
 /**
  * Colors per theme, as inline-style values (email clients drop <style> blocks). `dark` is a
  * dark-designed email, not a toggle of the client's dark mode - the layouts declare their

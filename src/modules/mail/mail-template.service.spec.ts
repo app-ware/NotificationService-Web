@@ -131,6 +131,64 @@ describe('MailTemplateService', () => {
     });
   });
 
+  describe('template "user-invite"', () => {
+    const invite = {
+      centerName: 'Sunrise',
+      centerAddress: 'Cairo',
+      centerLandLine: '0225',
+      logoUrl: 'https://files.example/10000/logo/logo.png',
+      userName: 'Omar Ali',
+      username: 'omar@sunrise',
+      setPasswordUrl: 'https://icare-portal.com/en/auth/set-password?token=abc123',
+      validDays: '7',
+    };
+    const renderInvite = (design: Record<string, unknown> = {}, vars: Record<string, string | null> = invite) =>
+      service.render(design, vars, 'user-invite');
+
+    it('renders the greeting, username, link and validity, without credentials or store links', () => {
+      const { html, template } = renderInvite();
+      expect(template).toBe('user-invite');
+      expect(html).toContain('Hello Omar Ali,');
+      expect(html).toContain('omar@sunrise');
+      // Handlebars escapes "=" in attributes as &#x3D; - decoded back by every client.
+      expect(html).toContain('href="https://icare-portal.com/en/auth/set-password?token&#x3D;abc123"');
+      expect(html).toContain('This link is valid for 7 days');
+      expect(html).not.toContain('play.google.com');
+      expect(html).not.toContain('PIN');
+    });
+
+    it('is one fixed design: the layout choice does not change it', () => {
+      expect(renderInvite({ layoutKey: 'classic' }).html).toBe(renderInvite({ layoutKey: 'modern' }).html);
+    });
+
+    it('applies the center language (RTL), theme, accent and logo choice', () => {
+      const ar = renderInvite({ language: 'ar' }).html;
+      expect(ar).toContain('dir="rtl"');
+      expect(ar).toContain('مرحباً Omar Ali,');
+      const dark = renderInvite({ theme: 'dark', accentColor: '#AA00FF' }).html;
+      expect(dark).toContain(MAIL_PALETTES.dark.card);
+      expect(dark).toContain('#AA00FF');
+      expect(renderInvite({ showLogo: false }).html).not.toContain(invite.logoUrl);
+    });
+
+    it('escapes every value', () => {
+      expect(renderInvite({}, { ...invite, userName: '<b>x</b>' }).html).toContain('&lt;b&gt;x&lt;/b&gt;');
+    });
+
+    it.each([null, '', 'javascript:alert(1)', '/auth/set-password?token=1', 'https://x.example/a"onclick'])(
+      'rejects a set-password link that is not an absolute http(s) URL: %p',
+      (setPasswordUrl) => {
+        expect(() => renderInvite({}, { ...invite, setPasswordUrl })).toThrow(/setPasswordUrl/);
+      },
+    );
+
+    it.each([undefined, null, 'nope'])('falls back to the parent-credentials layouts for template %p', (template) => {
+      const result = service.render({ layoutKey: 'modern' }, variables, template);
+      expect(result.template).toBe('parent-credentials');
+      expect(result.html).toContain('Dear Mona,');
+    });
+  });
+
   it('treats the body as plain text: no HTML, no Handlebars, no worker-side @placeholder replacement', () => {
     // Nursery replaces @parent_name & co. before queueing; the worker must not interpret anything.
     const { html } = service.render(null, {

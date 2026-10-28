@@ -4,10 +4,6 @@ name: CI/CD Pipeline - Notification Service (NotificationService-Web)
 # declared in NurseryServices-Web's docker-compose.prod.yml - the compose file the servers run
 # from /opt/icare/backend, shipped by the Nursery workflow - so that has to be deployed first, or
 # `docker compose pull notification-service` finds no such service.
-#
-# Production deploy is manual-only for now (workflow_dispatch → production): production push stays
-# on the legacy pm2 server (Nursery PUSH_TRANSPORT=legacy-http) until the queue path is proven on
-# staging. Turn on the main/tag triggers in deploy-production's `if` when that changes.
 
 on:
   pull_request:
@@ -140,7 +136,7 @@ jobs:
             docker compose ps notification-service
 
   # ==============================================================================
-  # 3. PRODUCTION DEPLOYMENT: https://icare-portal.com - MANUAL ONLY for now
+  # 3. PRODUCTION DEPLOYMENT: https://icare-portal.com
   # ==============================================================================
   deploy-production:
     name: Deploy to Production (icare-portal.com)
@@ -149,8 +145,10 @@ jobs:
     environment:
       name: production
       url: https://icare-portal.com
-    # Later: add `github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') ||`
-    if: github.event_name == 'workflow_dispatch' && inputs.target_env == 'production'
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && inputs.target_env == 'production')
 
     steps:
       - name: Deploy to production server

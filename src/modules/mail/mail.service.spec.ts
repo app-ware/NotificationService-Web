@@ -57,7 +57,8 @@ describe('MailService delivery contract', () => {
       jobId: job.jobId,
     });
     await service.send(job);
-    expect(template.render).toHaveBeenCalledWith(undefined, job.variables);
+    // Third argument = the job's template key (absent here → the service defaults to parent credentials).
+    expect(template.render).toHaveBeenCalledWith(undefined, job.variables, undefined);
     expect(mockSend).toHaveBeenCalledTimes(2);
     for (const call of mockSend.mock.calls) {
       expect(call).toEqual([

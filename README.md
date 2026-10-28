@@ -109,3 +109,10 @@ port - Nursery calls `http://notification-service:4448` inside the Docker networ
   from `MAIL_APP_STORE_BADGE_URL` / `MAIL_GOOGLE_PLAY_BADGE_URL` (`assets/email/README.md`) and fall
   back to text buttons; links go to the stores and to the portal (`MAIL_PORTAL_URL`). Jobs from an older
   Nursery (numbered `templateId`, text in `bodyHtml`) still render.
+- **Fixed templates** (2026-10-27): a job's `template` picks which email it is - missing/unknown =
+  `parent-credentials` (the layouts above). `user-invite` (`src/modules/mail/templates/user-invite.hbs`)
+  is the "set your password" email for a new center user: one design based on `modern`, not
+  editable - `design.layoutKey` and the store links are ignored, while the center's `language`,
+  `theme`, `accentColor` and logo choice apply. Variables: `USER_INVITE_VARIABLES` in the contract;
+  `setPasswordUrl` must be an absolute http(s) URL or the job is dead-lettered. The link carries a
+  one-time token - like PINs, never logged.
