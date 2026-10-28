@@ -4,11 +4,25 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
 import Handlebars from 'handlebars';
-import { DEFAULT_MAIL_LAYOUT, EmailDesign, MAIL_LAYOUTS } from '../../config/rabbitmq/contracts/email-job';
-import { MAIL_LABELS, MAIL_PALETTES, ResolvedDesign, resolveDesign } from './mail-design';
+import {
+  DEFAULT_MAIL_LAYOUT,
+  DEFAULT_MAIL_TEMPLATE,
+  EmailDesign,
+  MAIL_LAYOUTS,
+  MAIL_TEMPLATES,
+  MailTemplateKey,
+} from '../../config/rabbitmq/contracts/email-job';
+import { INVITE_LABELS, MAIL_LABELS, MAIL_PALETTES, ResolvedDesign, resolveDesign } from './mail-design';
 
 /** Copied next to the compiled service by the nest-cli `assets` entry. */
-const LAYOUTS_DIR = join(__dirname, 'templates', 'layouts');
+const TEMPLATES_DIR = join(__dirname, 'templates');
+const LAYOUTS_DIR = join(TEMPLATES_DIR, 'layouts');
+/** Fixed (non-layout) templates: templates/<template>.hbs. */
+const FIXED_TEMPLATES: readonly MailTemplateKey[] = ['user-invite'];
+
+export function resolveTemplateKey(template: string | null | undefined): MailTemplateKey {
+  return (MAIL_TEMPLATES as readonly string[]).includes(template ?? '') ? (template as MailTemplateKey) : DEFAULT_MAIL_TEMPLATE;
+}
 
 /** Legacy iCare Kids store pages (ICarePlayStore / ICareAppStore in the legacy web.config). */
 const DEFAULT_APP_STORE_URL = 'https://itunes.apple.com/lb/app/icare-kids/id717741889?mt=8';
@@ -31,6 +45,7 @@ const DEFAULT_LOGO_URL = 'https://icare-portal.com/en/assets/images/logos/LogoHQ
 export class MailTemplateService implements OnModuleInit {
   private readonly handlebars = Handlebars.create();
   private readonly layouts = new Map<string, Handlebars.TemplateDelegate>();
+  private readonly fixedTemplates = new Map<MailTemplateKey, Handlebars.TemplateDelegate>();
   private readonly links: { appStore: string; googlePlay: string; portal: string };
   private readonly images: { logo: string; appStoreBadge: string | null; googlePlayBadge: string | null };
 
@@ -72,20 +87,49 @@ export class MailTemplateService implements OnModuleInit {
     if (missing.length) {
       throw new Error(`Email layouts missing from ${LAYOUTS_DIR}: ${missing.join(', ')}.`);
     }
+    for (const key of FIXED_TEMPLATES) {
+      const source = readFileSync(join(TEMPLATES_DIR, `${key}.hbs`), 'utf8');
+      this.fixedTemplates.set(key, this.handlebars.compile(source, { strict: false }));
+    }
     this.logger.info(
-      { layouts: [...this.layouts.keys()], storeBadges: this.images.appStoreBadge ? 'images' : 'text buttons' },
+      {
+        layouts: [...this.layouts.keys()],
+        templates: [...this.fixedTemplates.keys()],
+        storeBadges: this.images.appStoreBadge ? 'images' : 'text buttons',
+      },
       'Email layouts loaded.',
     );
   }
 
-  /** Missing, null or invalid design values → defaults (see resolveDesign). */
+  /**
+   * Missing, null or invalid design values → defaults (see resolveDesign); missing / unknown
+   * template → parent credentials. A fixed template ignores design.layoutKey.
+   */
   render(
     design: EmailDesign | null | undefined,
     variables: Record<string, string | null | undefined>,
-  ): { html: string; design: ResolvedDesign } {
+    template?: string | null,
+  ): { html: string; design: ResolvedDesign; template: MailTemplateKey } {
     const resolved = resolveDesign(design);
+    const templateKey = resolveTemplateKey(template);
+    if (templateKey === 'user-invite') {
+      return { html: this.renderUserInvite(resolved, variables), design: resolved, template: templateKey };
+    }
     const layout = this.layouts.get(resolved.layoutKey) ?? this.layouts.get(DEFAULT_MAIL_LAYOUT)!;
-    return { html: layout(this.buildContext(resolved, variables)), design: resolved };
+    return { html: layout(this.buildContext(resolved, variables)), design: resolved, template: templateKey };
+  }
+
+  /** The link carries a one-time token and lands in an href - only absolute http(s) is accepted. */
+  private renderUserInvite(design: ResolvedDesign, variables: Record<string, string | null | undefined>): string {
+    if (!/^https?:\/\/[^\s"'<>]+$/i.test(variables.setPasswordUrl ?? '')) {
+      throw new Error('Invalid user-invite job: setPasswordUrl must be an absolute http(s) URL.');
+    }
+    const context = {
+      ...this.buildContext(design, variables),
+      labels: INVITE_LABELS[design.language],
+      showStoreBadges: false,
+    };
+    return this.fixedTemplates.get('user-invite')!(context);
   }
 
   private buildContext(design: ResolvedDesign, variables: Record<string, string | null | undefined>) {

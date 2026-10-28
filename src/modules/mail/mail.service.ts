@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
 import { Resend } from 'resend';
-import type { EmailJob, EmailResult } from '../../config/rabbitmq/contracts/email-job';
+import type { EmailJob, EmailResult, MailTemplateKey } from '../../config/rabbitmq/contracts/email-job';
 import { MailTemplateService } from './mail-template.service';
 import type { ResolvedDesign } from './mail-design';
 
@@ -38,13 +38,14 @@ export class MailService {
     }
   }
 
-  async send(job: EmailJob): Promise<EmailResult & { design: ResolvedDesign }> {
+  async send(job: EmailJob): Promise<EmailResult & { design: ResolvedDesign; template: MailTemplateKey }> {
     this.assertValidJob(job);
     if (!this.resend) {
       throw new Error('Email transport is not configured (RESEND_API_KEY missing).');
     }
 
-    const { html, design } = this.templateService.render(job.design, job.variables ?? {});
+    // Throws for a malformed job (e.g. a user-invite without an http(s) link) → dead-lettered.
+    const { html, design, template } = this.templateService.render(job.design, job.variables ?? {}, job.template);
 
     const { data, error } = await this.resend.emails.send(
       { from: job.from ?? this.defaultFrom, to: job.to, subject: job.subject, html },
@@ -53,8 +54,8 @@ export class MailService {
     );
 
     return error
-      ? { jobId: job.jobId, success: false, error: error.message, meta: job.meta, design }
-      : { jobId: job.jobId, success: true, providerId: data?.id, meta: job.meta, design };
+      ? { jobId: job.jobId, success: false, error: error.message, meta: job.meta, design, template }
+      : { jobId: job.jobId, success: true, providerId: data?.id, meta: job.meta, design, template };
   }
 
   /** A malformed job is a producer bug - throw so it lands in the DLQ for inspection. */
